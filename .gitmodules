@@ -1,0 +1,12 @@
+[submodule "hll"]
+	path = hll
+	url = https://github.com/dnbaker/hll
+[submodule "frp"]
+	path = frp
+	url = https://github.com/dnbaker/frp
+[submodule "valptr"]
+	path = valptr
+	url = https://github.com/dnbaker/valptr
+[submodule "SSO-23"]
+	path = SSO-23
+	url = https://github.com/elliotgoodrich/SSO-23
