@@ -19,3 +19,6 @@
 [submodule "branchless-utf8"]
 	path = branchless-utf8
 	url = https://github.com/skeeto/branchless-utf8
+[submodule "clhash"]
+	path = clhash
+	url = https://github.com/lemire/clhash
