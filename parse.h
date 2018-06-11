@@ -1,4 +1,6 @@
 #pragma once
+#include <cstring>
+#include <fstream>
 #include "branchless-utf8/utf8.h"
 #include "SSO-23/include/string.hpp"
 #include "kspp/ks.h"
@@ -6,20 +8,21 @@
 #include "circularqueue/circular_buffer.h"
 #include "valptr/valptr.h"
 #include "unistd.h"
+#include "logutil.h"
 #include "zlib.h"
 
 namespace dnlp {
 using sstring = sso23::string; // pstring for sso string.
 
+static std::ifstream::pos_type filesize(const char* filename)
+{
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    return in.tellg();
+}
+
 #if 0
 template<typename SourceType>
 struct CharEmitter;
-
-struct ASCIIEmitter {
-    void assign(std::FILE *fp) {
-
-    }
-};
 
 template<> struct CharEmitter<std::FILE*> {
     std::FILE  *fp_;
@@ -113,17 +116,20 @@ public:
     ASCIITextSpacer(const char *d, size_t n): ptr_(d), index_(0), l_(n), construct_(nullptr, 0) {
         std::fprintf(stderr, "Made ASCIITextSpacer\n");
     }
+    ASCIITextSpacer(const char *d): ASCIITextSpacer(d, std::strlen(d)) {}
     std::pair<const char *, size_t> *operator()() const {
         size_t nextind;
         while(index_ < l_ && !std::isalnum(ptr_[index_])) ++index_;
-        if(index_ == l_) return nullptr;
-        construct_.first = ptr_ + l_;
+        if(index_ == l_) {
+            return nullptr;
+        }
+        construct_.first = ptr_ + index_;
         while(index_ < l_ && !std::isspace(ptr_[index_])) ++index_;
         nextind = index_;
         while(std::ispunct(ptr_[index_ - 1])) --index_;
         construct_.second = ptr_ + index_ - construct_.first;
         index_ = nextind;
-#if !NDEBUG
+#if 0
         std::fprintf(stderr, "Returning construct with %p/%zu\n", (void *)construct_.first, construct_.second);
 #endif
         return &construct_;
@@ -166,7 +172,6 @@ public:
 #endif
     template<typename... Args>
     NGramType<SymbolType> *next(Args &&... args) {
-        std::fprintf(stderr, "Calling next on %s with diff = %zu\n", __PRETTY_FUNCTION__, size_t(n_ - deque_.size()));
         switch(n_ - deque_.size()) {
             case 0:
                 deque_.push_pop(std::forward<Args>(args)...);
@@ -174,7 +179,7 @@ public:
             case 1:
                 deque_.emplace_back(std::forward<Args>(args)...);
                 return &deque_;
-            default: 
+            default:
                 deque_.emplace_back(std::forward<Args>(args)...);
                 return nullptr;
         }
@@ -189,7 +194,10 @@ public:
         {
             int i = 0;
             while((tmp = sfunc()) == nullptr && i++ < 20); // Maximum number of empty characters in a row.
-            if(tmp == nullptr) return;
+            LOG_DEBUG("tmp: %p. i: %i\n", (void *)tmp, i);
+            if(tmp == nullptr) {
+                return;
+            }
         }
         do {
             if constexpr(std::is_same_v<SFuncRetType, std::pair<const char *, size_t>*>) {
