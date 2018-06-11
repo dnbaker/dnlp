@@ -10,3 +10,12 @@
 [submodule "SSO-23"]
 	path = SSO-23
 	url = https://github.com/elliotgoodrich/SSO-23
+[submodule "circularqueue"]
+	path = circularqueue
+	url = https://github.com/dnbaker/circularqueue
+[submodule "kspp"]
+	path = kspp
+	url = https://github.com/dnbaker/kspp
+[submodule "branchless-utf8"]
+	path = branchless-utf8
+	url = https://github.com/skeeto/branchless-utf8
