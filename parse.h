@@ -124,9 +124,9 @@ public:
             return nullptr;
         }
         construct_.first = ptr_ + index_;
-        while(index_ < l_ && !std::isspace(ptr_[index_])) ++index_;
+        while(index_ < l_ && !(std::isspace(ptr_[index_]) || (std::ispunct(ptr_[index_]) && ptr_[index_] != '\''))) ++index_;
         nextind = index_;
-        while(std::ispunct(ptr_[index_ - 1])) --index_;
+        while(std::ispunct(ptr_[index_ - 1]) && ptr_[index_ - 1] != '_') --index_;
         construct_.second = ptr_ + index_ - construct_.first;
         index_ = nextind;
 #if 0
@@ -148,15 +148,13 @@ class NGrammer {
     CPtr  cp_; // Contains a char pointer of either const or nonconst
 #endif
     uint32_t            l_;
-    uint8_t mutable_seq_:1;
-    uint16_t         n_:15;
+    uint16_t            n_;
     NGramType<SymbolType>    deque_;
     NGramHasherBase<HashStruct> hasher_;
 public:
     template<typename... Args>
-    NGrammer(unsigned n, bool mutable_seq, Args &&... args): mutable_seq_(mutable_seq), n_(n), deque_(n), hasher_(std::forward<Args>(args)...) {
-        if(n > n_) throw std::runtime_error(ks::sprintf("NGrammer can only handle n of up to %zu", size_t(1 << 15)).data());
-        std::fprintf(stderr, "Made NGrammer\n");
+    NGrammer(unsigned n, Args &&... args): n_(n), deque_(n), hasher_(std::forward<Args>(args)...) {
+        if(n > n_) throw std::runtime_error(ks::sprintf("NGrammer can only handle n of up to %zu", size_t(std::numeric_limits<uint16_t>::max())).data());
     }
 #if 0
     void assign(char *s, ssize_t l) {
@@ -209,9 +207,7 @@ public:
     }
     template<typename Functor, typename StringFunctor>
     void for_each_hash(const Functor &func, const StringFunctor &sfunc) {
-        this->for_each([&](const NGramType<SymbolType> &v) {
-            func(hasher_(v));
-        }, sfunc);
+        this->for_each([&](const NGramType<SymbolType> &v) {func(hasher_(v));}, sfunc);
     }
 };
 
