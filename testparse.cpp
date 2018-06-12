@@ -1,10 +1,12 @@
 #include "parse.h"
+#include "hll/hll.h"
 
 using namespace dnlp;
 
 int main(int argc, char *argv[]) {
     ks::string ks;
     int n;
+    sketch::hll::hll_t h(16);
     if(argc > 1) {
         std::FILE *fp = std::fopen(argv[1], "rb");
         size_t fsz = filesize(argv[1]);
@@ -22,9 +24,10 @@ int main(int argc, char *argv[]) {
     } else ks.puts("hello world I am cutting things into pieces for producing stuff"), n = 2;
     LOG_DEBUG("String of len %zu is %s\n", ks.size(), ks.data());
     ASCIITextSpacer spacer(ks.data(), ks.size());
-    NGrammer<> ng(n, true);
+    NGrammer<> ng(n);
+    clhasher hasher(137, 167);
+#if 0
     ng.for_each([&](auto &x) {
-#if 1
         LOG_DEBUG("Size of x: %zu\n", x.size());
         auto it = x.begin();
         size_t i = 0;
@@ -46,6 +49,8 @@ int main(int argc, char *argv[]) {
             std::fprintf(stderr, "string at ind %zu is '%s'\n", i++, el.data());
         }
         ks2.flush(stdout);
-#endif
     }, spacer);
+#endif
+    ng.for_each_hash([&](uint64_t val){h.addh(val);}, spacer);
+    std::fprintf(stderr, "cardinality, appx: %lf\n", h.report());
 }

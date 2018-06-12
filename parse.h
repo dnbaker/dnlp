@@ -44,11 +44,6 @@ template<> struct CharEmitter<std::FILE*> {
     }
 };
 
-struct ASCIIEmitter {
-    void assign(std::FILE *fp) {
-
-    }
-};
 #endif
 
 /*
@@ -77,13 +72,12 @@ struct NGramHasherBase {
     uint64_t operator()(const NGramType<SymbolType> &ngram) const {
         auto ind = ngram.start();
         const auto end = ngram.stop();
-        if(__builtin_expect(ind == end), 0) return 0;
+        if(__builtin_expect(ind == end, 0)) return 0;
         auto mask = ngram.mask();
         auto data = ngram.data();
         uint64_t ret = hs_(data[ind++]), tmp;
         ind &= mask;
         while(ind != end) {
-            GramType<SymbolType> &g = data[ind];
             tmp = hs_(data[ind]);
             ++ret;
             ret *= tmp;
@@ -133,6 +127,9 @@ public:
         std::fprintf(stderr, "Returning construct with %p/%zu\n", (void *)construct_.first, construct_.second);
 #endif
         return &construct_;
+    }
+    void reset() {
+        index_ = 0;
     }
 };
 
