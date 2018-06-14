@@ -61,9 +61,16 @@ using NGramType = circ::deque<sso23::basic_string<SymbolType>>;
 template<typename SymbolType>
 using GramType = sso23::basic_string<SymbolType>;
 
+/*
+ *
+ * TODO: add a method for ngramming a text file by n.
+ * TODO: add a method which produces an array of hlls, one per ngram (sizes can vary)
+ */
+
 template<typename HashStruct>
-struct NGramHasherBase {
+class NGramHasherBase {
     HashStruct hs_;
+public:
     template<typename... Args>
     NGramHasherBase(Args &&... args): hs_(std::forward<Args>(args)...) {
         std::fprintf(stderr, "Made %s\n", __PRETTY_FUNCTION__);
@@ -180,6 +187,22 @@ public:
         }
         __builtin_unreachable();
     }
+#if 0
+    NGramType<SymbolType> *next(const char *s, size_t l) {
+        switch(n_ - deque_.size()) {
+            case 0:
+                deque_.push_pop(s, s + l);
+                return &deque_;
+            case 1:
+                deque_.emplace_back(s, s + l);
+                return &deque_;
+            default:
+                deque_.emplace_back(s, s + l);
+                return nullptr;
+        }
+        __builtin_unreachable();
+    }
+#endif
     template<typename Functor, typename StringFunctor>
     void for_each(const Functor &func, const StringFunctor &sfunc) {
         NGramType<SymbolType> *g;
@@ -197,9 +220,7 @@ public:
         do {
             if constexpr(std::is_same_v<SFuncRetType, std::pair<const char *, size_t>*>) {
                 if((g = this->next(tmp->first, tmp->second))) func(*g);
-            } else {
-                if((g = this->next(*tmp))) func(*g);
-            }
+            } else if((g = this->next(*tmp))) func(*g);
         } while((tmp = sfunc()));
     }
     template<typename Functor, typename StringFunctor>
