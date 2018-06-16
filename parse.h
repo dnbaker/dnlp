@@ -12,6 +12,7 @@
 #include "zlib.h"
 
 namespace dnlp {
+
 using sstring = sso23::string; // pstring for sso string.
 
 static std::ifstream::pos_type filesize(const char* filename)
@@ -73,7 +74,6 @@ class NGramHasherBase {
 public:
     template<typename... Args>
     NGramHasherBase(Args &&... args): hs_(std::forward<Args>(args)...) {
-        std::fprintf(stderr, "Made %s\n", __PRETTY_FUNCTION__);
     }
     template<typename SymbolType>
     uint64_t operator()(const NGramType<SymbolType> &ngram) const {
@@ -115,7 +115,6 @@ class ASCIITextSpacer {
     mutable std::pair<const char *, size_t> construct_;
 public:
     ASCIITextSpacer(const char *d, size_t n): ptr_(d), index_(0), l_(n), construct_(nullptr, 0) {
-        std::fprintf(stderr, "Made ASCIITextSpacer\n");
     }
     ASCIITextSpacer(const char *d): ASCIITextSpacer(d, std::strlen(d)) {}
     std::pair<const char *, size_t> *operator()() const {
@@ -130,9 +129,6 @@ public:
         while(std::ispunct(ptr_[index_ - 1]) && ptr_[index_ - 1] != '_') --index_;
         construct_.second = ptr_ + index_ - construct_.first;
         index_ = nextind;
-#if 0
-        std::fprintf(stderr, "Returning construct with %p/%zu\n", (void *)construct_.first, construct_.second);
-#endif
         return &construct_;
     }
     void reset() {
@@ -212,15 +208,18 @@ public:
         {
             int i = 0;
             while((tmp = sfunc()) == nullptr && i++ < 20); // Maximum number of empty characters in a row.
-            LOG_DEBUG("tmp: %p. i: %i\n", (void *)tmp, i);
             if(tmp == nullptr) {
                 return;
             }
         }
         do {
             if constexpr(std::is_same_v<SFuncRetType, std::pair<const char *, size_t>*>) {
-                if((g = this->next(tmp->first, tmp->second))) func(*g);
-            } else if((g = this->next(*tmp))) func(*g);
+                if((g = this->next(tmp->first, tmp->second))) {
+                    func(*g);
+                }
+            } else {
+                if((g = this->next(*tmp))) func(*g);
+            }
         } while((tmp = sfunc()));
     }
     template<typename Functor, typename StringFunctor>
